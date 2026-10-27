@@ -1,0 +1,70 @@
+{
+  "product": {
+    "create": {
+      "title": "Playwright API Test Product",
+      "price": 19.99,
+      "description": "Deterministic product data for FakeStore API tests.",
+      "image": "https://example.com/playwright-api-test-product.png",
+      "category": "electronics"
+    },
+    "update": {
+      "title": "Updated Playwright API Test Product",
+      "price": 29.99,
+      "description": "Updated deterministic product data for FakeStore API tests.",
+      "image": "https://example.com/updated-playwright-api-test-product.png",
+      "category": "electronics"
+    }
+  },
+  "user": {
+    "create": {
+      "email": "playwright.api.test@example.com",
+      "username": "playwright_api_test_user",
+      "password": "test-only-password",
+      "name": {
+        "firstname": "Playwright",
+        "lastname": "ApiTest"
+      },
+      "address": {
+        "city": "Test City",
+        "street": "Test Street",
+        "number": 1,
+        "zipcode": "00000",
+        "geolocation": {
+          "lat": "0",
+          "long": "0"
+        }
+      },
+      "phone": "000-000-0000"
+    },
+    "update": {
+      "email": "updated.playwright.api.test@example.com",
+      "username": "updated_playwright_api_test_user",
+      "password": "test-only-updated-password",
+      "name": {
+        "firstname": "UpdatedPlaywright",
+        "lastname": "ApiTest"
+      },
+      "address": {
+        "city": "Updated Test City",
+        "street": "Updated Test Street",
+        "number": 2,
+        "zipcode": "11111",
+        "geolocation": {
+          "lat": "1",
+          "long": "1"
+        }
+      },
+      "phone": "111-111-1111"
+    }
+  },
+  "cart": {
+    "create": {
+      "date": "2020-03-02",
+      "quantity": 2
+    },
+    "update": {
+      "date": "2020-03-03",
+      "quantity": 5
+    }
+  }
+}

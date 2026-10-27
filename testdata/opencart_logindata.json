@@ -1,0 +1,32 @@
+[
+  {
+    "testName": "Valid login",
+    "email": "meher.shyam@gmail.com",
+    "password": "Meher@07",
+    "expected": "success"
+  },
+  {
+    "testName": "Invalid login",
+    "email": "meher@gmail.com",
+    "password": "abc@123",
+    "expected": "failure"
+  },
+  {
+    "testName": "Invalid login",
+    "email": " ",
+    "password": "meher@12345",
+    "expected": "failure"
+  },
+  {
+    "testName": "Invalid login",
+    "email": "meher.S@gmail.com",
+    "password": " ",
+    "expected": "failure"
+  },
+  {
+    "testName": "Invalid login",
+    "email": " ",
+    "password": " ",
+    "expected": "failure"
+  }
+]
