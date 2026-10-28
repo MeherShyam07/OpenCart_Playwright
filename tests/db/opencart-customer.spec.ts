@@ -23,6 +23,11 @@ function requiredEnvironmentValue(name: string): string {
 }
 
 test.describe.configure({ timeout: 120_000 });
+test.use({ screenshot: 'off', video: 'off', trace: 'off' });
+
+test.afterEach(async ({ page }) => {
+    await page.close();
+});
 
 test('Customer registration matches Admin and MySQL records @master @regression @end-to-end @db', async ({
     adminCustomerPage,

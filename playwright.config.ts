@@ -25,6 +25,16 @@ export default defineConfig({
     ignoreHTTPSErrors: true, // Ignore SSL errors if necessary
     permissions: ["geolocation"], // Set necessary permissions for geolocation-based tests
   },
+  ...(process.env.API_TEST_MODE === "contract"
+    ? {
+        webServer: {
+          command: "node tests/api/support/fakestore-contract-server.js",
+          url: "http://127.0.0.1:4010/health",
+          reuseExistingServer: !process.env.CI,
+          timeout: 30_000,
+        },
+      }
+    : {}),
   grep: /@master/,
   projects: [
     {

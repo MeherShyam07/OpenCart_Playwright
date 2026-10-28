@@ -1,25 +1,25 @@
 [
   {
     "testName": "Valid login",
-    "email": "meher.shyam@gmail.com",
-    "password": "Meher@07",
+    "email": "",
+    "password": "",
     "expected": "success"
   },
   {
     "testName": "Invalid login",
-    "email": "meher@gmail.com",
-    "password": "abc@123",
+    "email": "invalid.user@example.invalid",
+    "password": "synthetic-invalid-password",
     "expected": "failure"
   },
   {
     "testName": "Invalid login",
     "email": " ",
-    "password": "meher@12345",
+    "password": "synthetic-invalid-password",
     "expected": "failure"
   },
   {
     "testName": "Invalid login",
-    "email": "meher.S@gmail.com",
+    "email": "invalid.user@example.invalid",
     "password": " ",
     "expected": "failure"
   },

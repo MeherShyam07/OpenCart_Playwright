@@ -18,7 +18,9 @@ on:
           - test:regression
           - test:e2e
           - test:api
+          - test:api-contract
           - test:web
+          - test:db
           - test:datadriven
         default: "test:e2e"
       browser:
@@ -26,8 +28,6 @@ on:
         type: choice
         options:
           - chromium
-          - firefox
-          - webkit
         default: "chromium"
       mode:
         description: "Run mode"
@@ -61,17 +61,60 @@ jobs:
         run: Copy-Item .env.example .env
 
       - name: 🧪 Run Playwright Tests
+        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.test_suite != 'test:db' }}
         run: |
           $suite = "${{ github.event.inputs.test_suite || 'test:e2e' }}"
           $browser = "${{ github.event.inputs.browser || 'chromium' }}"
           $mode = "${{ github.event.inputs.mode || 'headless' }}"
           $tag = $suite -replace '^test:', ''
-          if ($tag -eq 'e2e') { $tag = 'end-to-end' }
+          $grep = "@$tag"
+          if ($tag -eq 'e2e') {
+            $grep = '(?=.*@web)(?=.*@end-to-end)'
+          }
+          if ($tag -eq 'api') {
+            $grep = '(?=.*@api)(?!.*@api-contract)'
+          }
+          if ($tag -eq 'api-contract') {
+            $grep = '@api-contract'
+            $env:API_TEST_MODE = 'contract'
+            $env:API_BASE_URL = 'http://127.0.0.1:4010'
+          }
           $browserFlag = "--project=$browser"
           $modeFlag = if ($mode -eq 'headed') { '--headed' } else { '' }
-          npx playwright test --grep "@$tag" $browserFlag $modeFlag --output=test-results
+          if ($tag -eq 'master' -or $tag -eq 'regression') {
+            npx playwright test --grep "$grep" --grep-invert '@db' $browserFlag $modeFlag --output=test-results
+          } else {
+            npx playwright test --grep "$grep" $browserFlag $modeFlag --output=test-results
+          }
         env:
           CI: "1"
+          APP_EMAIL: ${{ secrets.OPENCART_CUSTOMER_EMAIL }}
+          APP_PASSWORD: ${{ secrets.OPENCART_CUSTOMER_PASSWORD }}
+
+      - name: 🗄️ Run OpenCart Database Integration Test
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.test_suite == 'test:db' }}
+        run: |
+          $required = @('WEB_APP_URL', 'ADMIN_USERNAME', 'ADMIN_PASSWORD', 'DB_HOST', 'DB_PORT', 'DB_USER', 'DB_NAME')
+          foreach ($name in $required) {
+            if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) {
+              throw "$name must be configured for the database integration test."
+            }
+          }
+          $browser = "${{ github.event.inputs.browser || 'chromium' }}"
+          $mode = "${{ github.event.inputs.mode || 'headless' }}"
+          $browserFlag = "--project=$browser"
+          $modeFlag = if ($mode -eq 'headed') { '--headed' } else { '' }
+          npx playwright test --grep '@db' $browserFlag $modeFlag --output=test-results
+        env:
+          CI: "1"
+          WEB_APP_URL: ${{ vars.OPENCART_WEB_APP_URL }}
+          ADMIN_USERNAME: ${{ secrets.OPENCART_ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.OPENCART_ADMIN_PASSWORD }}
+          DB_HOST: ${{ vars.OPENCART_DB_HOST }}
+          DB_PORT: ${{ vars.OPENCART_DB_PORT }}
+          DB_USER: ${{ secrets.OPENCART_DB_USER }}
+          DB_PASSWORD: ${{ secrets.OPENCART_DB_PASSWORD }}
+          DB_NAME: ${{ vars.OPENCART_DB_NAME }}
 
       - name: 📊 Upload Playwright HTML Report
         if: always()

@@ -61,11 +61,4 @@ export const test = base.extend<PageFixtures>({
     }
 });
 
-test.afterEach(async ({ page, context }) => {
-    if (!page.isClosed()) {
-        await page.close();
-    }
-    await context.close();
-});
-
 export { expect } from '@playwright/test';

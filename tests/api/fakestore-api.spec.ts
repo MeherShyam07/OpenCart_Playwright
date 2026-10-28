@@ -1,7 +1,7 @@
 import Ajv from 'ajv';
 import dotenv from 'dotenv';
 import path from 'node:path';
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIResponse } from '@playwright/test';
 import { Routes } from '../../api/endpoints/routes';
 import cartSchema from '../../api/schemas/cart_api_schema.json';
 import productSchema from '../../api/schemas/product_api_schema.json';
@@ -60,6 +60,22 @@ const END_DATE = requiredEnvironmentValue('END_DATE');
 
 function apiUrl(route: string): string {
     return `${API_BASE_URL}${route}`;
+}
+
+async function expectResponseStatus(
+    response: APIResponse,
+    expectedStatus: number,
+    description: string
+): Promise<void> {
+    const actualStatus = response.status();
+    let diagnostic = '';
+
+    if (actualStatus !== expectedStatus) {
+        const responseBody = (await response.text()).slice(0, 1000);
+        diagnostic = ` Request URL: ${response.url()}. Response body: ${responseBody}`;
+    }
+
+    expect(actualStatus, `${description}.${diagnostic}`).toBe(expectedStatus);
 }
 
 function routeWithId(route: string, id: number): string {
@@ -209,7 +225,7 @@ test.describe('FakeStore API Tests', () => {
     test('POST - Create product @master @regression @api', async ({ request }) => {
         const payload = apiTestData.product.create;
         const response = await request.post(apiUrl(Routes.CREATE_PRODUCT), { data: payload });
-        expect(response.status(), 'Create product should return HTTP 201').toBe(201);
+        await expectResponseStatus(response, 201, 'Create product should return HTTP 201');
 
         const created = await response.json() as Product;
         expect(Number.isInteger(created.id), 'Created product should include an integer ID').toBe(true);
@@ -480,10 +496,14 @@ test.describe('FakeStore API Tests', () => {
     // ---------------------------------------------------------
 
     test.describe.serial('CRUD workflows', () => {
-        test('Product create, update, and delete workflow @master @regression @api @end-to-end', async ({ request }) => {
+        test('Product create, update, and delete workflow @master @regression @api @end-to-end @api-contract', async ({ request }) => {
             const createPayload = apiTestData.product.create;
             const createResponse = await request.post(apiUrl(Routes.CREATE_PRODUCT), { data: createPayload });
-            expect(createResponse.status(), 'Workflow product creation should return HTTP 201').toBe(201);
+            await expectResponseStatus(
+                createResponse,
+                201,
+                'Workflow product creation should return HTTP 201'
+            );
 
             const created = await createResponse.json() as Product;
             expect(Number.isInteger(created.id), 'Workflow product should include an integer ID').toBe(true);
@@ -506,7 +526,7 @@ test.describe('FakeStore API Tests', () => {
             expect(deleteResponse.status(), 'Workflow product deletion should return HTTP 200').toBe(200);
         });
 
-        test('User create, update, and delete workflow @master @regression @api @end-to-end', async ({ request }) => {
+        test('User create, update, and delete workflow @master @regression @api @end-to-end @api-contract', async ({ request }) => {
             const createPayload = apiTestData.user.create;
             const createResponse = await request.post(apiUrl(Routes.CREATE_USER), { data: createPayload });
             expect(createResponse.status(), 'Workflow user creation should return HTTP 201').toBe(201);
@@ -529,7 +549,7 @@ test.describe('FakeStore API Tests', () => {
             expect(deleteResponse.status(), 'Workflow user deletion should return HTTP 200').toBe(200);
         });
 
-        test('Cart create, update, and delete workflow @master @regression @api @end-to-end', async ({ request }) => {
+        test('Cart create, update, and delete workflow @master @regression @api @end-to-end @api-contract', async ({ request }) => {
             const createPayload = cartPayload(
                 USER_ID,
                 PRODUCT_ID,
