@@ -681,29 +681,39 @@ Commit message,Branch,Push result (Successful or Failed or No changes to push)
 
 ## `.github\workflows\playwright.yml`
 
-The workflow in the repository is the source of truth. It runs TypeScript validation and provides separate Web UI, data-driven login, live API, API contract, and database jobs. Pushes and pull requests select all suites; **Actions → Playwright Tests → Run workflow → All suites** does the same. Individual suites can be selected for focused runs. JUnit, custom, and Allure reports are uploaded as seven-day artifacts; API jobs also upload Playwright test results. Screenshots, videos, and traces are disabled for suites that submit credentials so artifacts cannot capture authentication data.
+The workflow in the repository is the source of truth. Pushes and pull requests to `master` run TypeScript validation plus separate Web UI, data-driven login, live API, and API contract jobs. The database job is excluded from automatic validation and can be selected manually. **Actions → Playwright Tests → Run workflow → All Suites** runs every suite, including Database; infrastructure or test failures remain job failures. Individual suites can be selected for focused runs. JUnit, custom, and Allure reports are uploaded as seven-day artifacts; API jobs also upload Playwright test results. Screenshots, videos, and traces are disabled for suites that submit credentials so artifacts cannot capture authentication data.
 
 ### GitHub Actions configuration
 
-Configure these values under **Settings → Secrets and variables → Actions**:
+Before the initial push to `master`, configure these required **Secrets** under **Settings → Secrets and variables → Actions** for the automatic Web UI, data-driven, and live API jobs:
 
-| Name                         | Type     | Purpose                                                                                                                                          |
-| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `OPENCART_WEB_APP_URL`       | Variable | Runner-accessible storefront URL. Defaults to `https://awesomeqa.com/ui/`; never use a developer laptop's `localhost` on a GitHub-hosted runner. |
-| `OPENCART_CUSTOMER_EMAIL`    | Secret   | Valid storefront customer for login scenarios.                                                                                                   |
-| `OPENCART_CUSTOMER_PASSWORD` | Secret   | Password for that storefront customer.                                                                                                           |
-| `FAKESTORE_API_BASE_URL`     | Variable | Runner-accessible FakeStore-compatible API. Defaults to `https://fakestoreapi.com`.                                                              |
-| `FAKESTORE_USERNAME`         | Secret   | API test account username.                                                                                                                       |
-| `FAKESTORE_PASSWORD`         | Secret   | API test account password.                                                                                                                       |
-| `OPENCART_ADMIN_USERNAME`    | Secret   | OpenCart administrator for the database integration test.                                                                                        |
-| `OPENCART_ADMIN_PASSWORD`    | Secret   | OpenCart administrator password.                                                                                                                 |
-| `OPENCART_DB_HOST`           | Variable | MySQL hostname reachable from the runner.                                                                                                        |
-| `OPENCART_DB_PORT`           | Variable | MySQL TCP port, typically `3306`.                                                                                                                |
-| `OPENCART_DB_NAME`           | Variable | OpenCart database name containing `oc_customer`.                                                                                                 |
-| `OPENCART_DB_USER`           | Secret   | MySQL user with the required customer-table access.                                                                                              |
-| `OPENCART_DB_PASSWORD`       | Secret   | MySQL password.                                                                                                                                  |
+| Name                         | Type   | Purpose                                        |
+| ---------------------------- | ------ | ---------------------------------------------- |
+| `OPENCART_CUSTOMER_EMAIL`    | Secret | Valid storefront customer for login scenarios. |
+| `OPENCART_CUSTOMER_PASSWORD` | Secret | Password for that storefront customer.         |
+| `FAKESTORE_USERNAME`         | Secret | API test account username.                     |
+| `FAKESTORE_PASSWORD`         | Secret | API test account password.                     |
 
-Before enabling the database suite, allow the selected runner to reach both the configured OpenCart application and MySQL. GitHub-hosted runners cannot access services bound to a developer machine's loopback interface; use a secured, reachable test environment or a self-hosted runner inside the application/database network. The workflow checks app HTTP reachability and database TCP, credentials, and schema before it registers test data.
+These **Variables** are optional overrides because the workflow has defaults. Set them when the defaults are not reachable or authorized from the runner. The selected application/API endpoints must be runner-accessible:
+
+| Name                     | Type     | Purpose                                                                                                                                          |
+| ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OPENCART_WEB_APP_URL`   | Variable | Runner-accessible storefront URL; defaults to `https://awesomeqa.com/ui/`. Never use a developer laptop's `localhost` on a GitHub-hosted runner. |
+| `FAKESTORE_API_BASE_URL` | Variable | Runner-accessible FakeStore-compatible API; defaults to `https://fakestoreapi.com`.                                                              |
+
+API Contract uses its local test server and requires no GitHub Secrets or Variables. Database is manual-only unless **All Suites** is selected. Before selecting Database or All Suites, configure these additional **Secrets** and **Variables**:
+
+| Name                      | Type     | Purpose                                                   |
+| ------------------------- | -------- | --------------------------------------------------------- |
+| `OPENCART_ADMIN_USERNAME` | Secret   | OpenCart administrator for the database integration test. |
+| `OPENCART_ADMIN_PASSWORD` | Secret   | OpenCart administrator password.                          |
+| `OPENCART_DB_USER`        | Secret   | MySQL user with the required customer-table access.       |
+| `OPENCART_DB_PASSWORD`    | Secret   | MySQL password.                                           |
+| `OPENCART_DB_HOST`        | Variable | MySQL hostname reachable from the runner.                 |
+| `OPENCART_DB_PORT`        | Variable | MySQL TCP port, typically `3306`.                         |
+| `OPENCART_DB_NAME`        | Variable | OpenCart database name containing `oc_customer`.          |
+
+Before running Database, allow the selected runner to reach both the configured OpenCart application and MySQL. GitHub-hosted runners cannot access services bound to a developer machine's loopback interface; use a secured, reachable test environment or a self-hosted runner inside the application/database network. The workflow checks app HTTP reachability and database TCP, credentials, and schema before it registers test data.
 
 Secrets are not provided to workflows triggered by fork pull requests. Configure an explicit trusted execution policy for such contributions; do not make test credentials public to work around that restriction. Use repository/organization environments and restricted database accounts appropriate to your deployment.
 

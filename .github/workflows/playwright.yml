@@ -323,7 +323,7 @@ jobs:
 
   database:
     name: OpenCart database integration
-    if: ${{ github.event_name != 'workflow_dispatch' || contains(fromJSON('["All Suites","test:db"]'), inputs.test_suite) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && contains(fromJSON('["All Suites","test:db"]'), inputs.test_suite) }}
     needs: typecheck
     runs-on: windows-latest
     timeout-minutes: 30
