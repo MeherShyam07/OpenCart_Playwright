@@ -7,6 +7,7 @@
     "test:api": "playwright test --grep @api --grep-invert @api-contract",
     "test:api-contract": "node utils/runApiContractTests.js",
     "test:web": "playwright test --grep @web",
+    "test:web:standard": "playwright test --grep @web --grep-invert @datadriven",
     "test:master": "playwright test --grep @master --grep-invert @db",
     "test:sanity": "playwright test --grep @sanity",
     "test:regression": "playwright test --grep @regression --grep-invert @db",
@@ -14,7 +15,8 @@
     "test:datadriven": "playwright test --grep @datadriven",
     "test:db": "playwright test --grep @db",
     "test:master:headed": "playwright test --grep @sanity --headed",
-    "test:sanity:debug": "playwright test --grep @sanity --debug"
+    "test:sanity:debug": "playwright test --grep @sanity --debug",
+    "typecheck": "tsc --noEmit --project tsconfig.json"
   },
   "keywords": [],
   "type": "commonjs",
@@ -24,7 +26,8 @@
     "ajv": "^8.20.0",
     "allure-commandline": "^2.46.1",
     "allure-playwright": "^3.14.0",
-    "dotenv": "^18.0.9"
+    "dotenv": "^18.0.9",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@axe-core/playwright": "^4.14.0",

@@ -28,7 +28,9 @@ for (const [index, row] of loginTestData.entries()) {
         const credentials = row.expected === 'success'
             ? Helper.getLoginDetails()
             : {
-                email: row.email.trim() ? row.email : '',
+                email: row.email.trim()
+                    ? row.email.replace('@', `+row-${index + 1}-${Date.now()}@`)
+                    : '',
                 password: row.password.trim() ? row.password : ''
             };
 

@@ -681,106 +681,33 @@ Commit message,Branch,Push result (Successful or Failed or No changes to push)
 
 ## `.github\workflows\playwright.yml`
 
-```text
-#To run manually: go to your repo → Actions → Playwright Tests → Run workflow → choose your parameters → Run.
+The workflow in the repository is the source of truth. It runs TypeScript validation and provides separate Web UI, data-driven login, live API, API contract, and database jobs. Pushes and pull requests select all suites; **Actions → Playwright Tests → Run workflow → All suites** does the same. Individual suites can be selected for focused runs. JUnit, custom, and Allure reports are uploaded as seven-day artifacts; API jobs also upload Playwright test results. Screenshots, videos, and traces are disabled for suites that submit credentials so artifacts cannot capture authentication data.
 
-name: 🎭 Playwright Tests
+### GitHub Actions configuration
 
-on:
-  push:
-    branches: [master]
-  pull_request:
-    branches: [master]
-  workflow_dispatch:
-    inputs:
-      test_suite:
-        description: "Select test suite"
-        type: choice
-        options:
-          - test:master
-          - test:sanity
-          - test:regression
-          - test:e2e
-          - test:api
-          - test:web
-          - test:datadriven
-        default: "test:e2e"
-      browser:
-        description: "Select browser"
-        type: choice
-        options:
-          - chromium
-          - firefox
-          - webkit
-        default: "chromium"
-      mode:
-        description: "Run mode"
-        type: choice
-        options:
-          - headless
-          - headed
-        default: "headless"
+Configure these values under **Settings → Secrets and variables → Actions**:
 
-jobs:
-  test:
-    timeout-minutes: 60
-    runs-on: windows-latest
+| Name                         | Type     | Purpose                                                                                                                                          |
+| ---------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OPENCART_WEB_APP_URL`       | Variable | Runner-accessible storefront URL. Defaults to `https://awesomeqa.com/ui/`; never use a developer laptop's `localhost` on a GitHub-hosted runner. |
+| `OPENCART_CUSTOMER_EMAIL`    | Secret   | Valid storefront customer for login scenarios.                                                                                                   |
+| `OPENCART_CUSTOMER_PASSWORD` | Secret   | Password for that storefront customer.                                                                                                           |
+| `FAKESTORE_API_BASE_URL`     | Variable | Runner-accessible FakeStore-compatible API. Defaults to `https://fakestoreapi.com`.                                                              |
+| `FAKESTORE_USERNAME`         | Secret   | API test account username.                                                                                                                       |
+| `FAKESTORE_PASSWORD`         | Secret   | API test account password.                                                                                                                       |
+| `OPENCART_ADMIN_USERNAME`    | Secret   | OpenCart administrator for the database integration test.                                                                                        |
+| `OPENCART_ADMIN_PASSWORD`    | Secret   | OpenCart administrator password.                                                                                                                 |
+| `OPENCART_DB_HOST`           | Variable | MySQL hostname reachable from the runner.                                                                                                        |
+| `OPENCART_DB_PORT`           | Variable | MySQL TCP port, typically `3306`.                                                                                                                |
+| `OPENCART_DB_NAME`           | Variable | OpenCart database name containing `oc_customer`.                                                                                                 |
+| `OPENCART_DB_USER`           | Secret   | MySQL user with the required customer-table access.                                                                                              |
+| `OPENCART_DB_PASSWORD`       | Secret   | MySQL password.                                                                                                                                  |
 
-    steps:
-      - name: 📥 Checkout Repository
-        uses: actions/checkout@v4
+Before enabling the database suite, allow the selected runner to reach both the configured OpenCart application and MySQL. GitHub-hosted runners cannot access services bound to a developer machine's loopback interface; use a secured, reachable test environment or a self-hosted runner inside the application/database network. The workflow checks app HTTP reachability and database TCP, credentials, and schema before it registers test data.
 
-      - name: 🟢 Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
+Secrets are not provided to workflows triggered by fork pull requests. Configure an explicit trusted execution policy for such contributions; do not make test credentials public to work around that restriction. Use repository/organization environments and restricted database accounts appropriate to your deployment.
 
-      - name: 📦 Install Dependencies
-        run: npm ci
-
-      - name: 🎭 Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: ⚙️ Create .env File
-        run: Copy-Item .env.example .env
-
-      - name: 🧪 Run Playwright Tests
-        run: |
-          $suite = "${{ github.event.inputs.test_suite || 'test:e2e' }}"
-          $browser = "${{ github.event.inputs.browser || 'chromium' }}"
-          $mode = "${{ github.event.inputs.mode || 'headless' }}"
-          $tag = $suite -replace 'test:', ''
-          $browserFlag = "--project=$browser"
-          $modeFlag = if ($mode -eq 'headed') { '--headed' } else { '' }
-          npx playwright test --grep "@$tag" $browserFlag $modeFlag --reporter=dot --output=test-results
-        env:
-          CI: "1"
-
-      - name: 📊 Upload Playwright HTML Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: reports/
-          retention-days: 30
-
-      - name: 📋 Upload Custom Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: custom-report
-          path: custom-report/
-          retention-days: 30
-
-      - name: 📈 Upload Allure Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results/
-          retention-days: 30
-
-```
+The checked-in `.env.example` includes sample configuration defaults and blank credential placeholders. Review and adjust the defaults for your environment when copying it to `.env`; keep credentials out of the template and never commit `.env`.
 
 ---
 

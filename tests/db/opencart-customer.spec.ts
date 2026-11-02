@@ -23,6 +23,7 @@ function requiredEnvironmentValue(name: string): string {
 }
 
 test.describe.configure({ timeout: 120_000 });
+
 test.use({ screenshot: 'off', video: 'off', trace: 'off' });
 
 test.afterEach(async ({ page }) => {

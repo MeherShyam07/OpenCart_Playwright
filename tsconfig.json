@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "Node16",
+    "module": "ESNext",
     "lib": ["ES2022", "DOM"],
-    "moduleResolution": "node16",
+    "moduleResolution": "bundler",
     "types": ["node"],
     "strict": true,
     "esModuleInterop": true,
@@ -14,6 +14,22 @@
     "outDir": "dist",
     "ignoreDeprecations": "6.0"
   },
-  "include": ["playwright.config.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "api/**/*.ts",
+    "fixtures/**/*.ts",
+    "pages/**/*.ts",
+    "playwright.config.ts",
+    "tests/**/*.ts",
+    "utils/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "allure-report",
+    "allure-results",
+    "custom-report",
+    "dist",
+    "playwright-report",
+    "reports",
+    "test-results"
+  ]
 }
